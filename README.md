@@ -5,19 +5,19 @@
 </p>
 
 <p align="center">
-  <a href="https://travis-ci.org/neo-project/neo">
-    <img src="https://travis-ci.org/neo-project/neo.svg?branch=master" alt="Current TravisCI build status.">
+  <a href="https://travis-ci.org/george-key/geo">
+    <img src="https://travis-ci.org/george-keygeo.svg?branch=master" alt="Current TravisCI build status.">
   </a>
-  <a href="https://github.com/neo-project/neo/releases">
-    <img src="https://badge.fury.io/gh/george-key%2Fneo.svg" alt="Current neo version.">
+  <a href="https://github.com/neo-project/geo/releases">
+    <img src="https://badge.fury.io/gh/george-key%2Fgeo.svg" alt="Current neo version.">
   </a>
-  <a href="https://codecov.io/github/george-key/neo/branch/master/graph/badge.svg">
-    <img src="https://codecov.io/github/george-key/neo/branch/master/graph/badge.svg" alt="Current Coverage Status." />
+  <a href="https://codecov.io/github/george-key/geo/branch/master/graph/badge.svg">
+    <img src="https://codecov.io/github/george-key/geo/branch/master/graph/badge.svg" alt="Current Coverage Status." />
   </a>
-  <a href="https://github.com/george-key/neo">
-    <img src="https://tokei.rs/b1/github/george-key/neo?category=lines" alt="Current total lines.">
+  <a href="https://github.com/george-key/geo">
+    <img src="https://tokei.rs/b1/github/george-key/geo?category=lines" alt="Current total lines.">
   </a>	
-  <a href="https://github.com/neo-project/neo/blob/master/LICENSE">
+  <a href="https://github.com/george-key/geo/blob/master/LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License.">
   </a>
 </p>
@@ -38,7 +38,7 @@ From 2017 until the middle of 2020 (estimated), NEO 2.x will still be supported 
 
 A link to the essential C# reference implementation can be seen below:
 
-* [neo](https://github.com/neo-project/neo/tree/master-2.x): core implementation (branch `master-2.x`)
+* [neo](https://github.com/george-key/geo/tree/master-2.x): core implementation (branch `master-2.x`)
 * [neo-vm](https://github.com/neo-project/neo-vm/tree/master-2.x): virtual machine (branch `master-2.x`)
 * [neo-cli](https://github.com/neo-project/neo-cli/tree/master-2.x): command-line interface (branch `master-2.x`)
 * [neo-plugins](https://github.com/neo-project/neo-plugins/tree/master-2.x): plugins (branch `master-2.x`)
