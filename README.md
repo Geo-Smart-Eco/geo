@@ -5,18 +5,18 @@
 </p>
 
 <p align="center">
-  <a href="https://travis-ci.org/george-key/geo">
+ <!-- <a href="https://travis-ci.org/george-key/geo">
     <img src="https://travis-ci.org/george-keygeo.svg?branch=master" alt="Current TravisCI build status.">
-  </a>
+  </a> -->
   <a href="https://github.com/neo-project/geo/releases">
     <img src="https://badge.fury.io/gh/george-key%2Fgeo.svg" alt="Current neo version.">
   </a>
   <a href="https://codecov.io/github/george-key/geo/branch/master/graph/badge.svg">
     <img src="https://codecov.io/github/george-key/geo/branch/master/graph/badge.svg" alt="Current Coverage Status." />
   </a>
-  <a href="https://github.com/george-key/geo">
+<!--  <a href="https://github.com/george-key/geo">
     <img src="https://tokei.rs/b1/github/george-key/geo?category=lines" alt="Current total lines.">
-  </a>	
+  </a>	-->
   <a href="https://github.com/george-key/geo/blob/master/LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License.">
   </a>
