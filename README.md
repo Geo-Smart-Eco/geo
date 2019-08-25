@@ -22,6 +22,12 @@
   </a>
 </p>
 
+
+GEO 1.0 (just forked): A distributed Smart Ecosystem Software
+================
+
+Being forked from NEO, this will help to save the planet Earth
+
 NEO 3.0 (under development): A distributed network for the Smart Economy
 ================
 
