@@ -9,13 +9,13 @@
     <img src="https://travis-ci.org/neo-project/neo.svg?branch=master" alt="Current TravisCI build status.">
   </a>
   <a href="https://github.com/neo-project/neo/releases">
-    <img src="https://badge.fury.io/gh/neo-project%2Fneo.svg" alt="Current neo version.">
+    <img src="https://badge.fury.io/gh/george-key%2Fneo.svg" alt="Current neo version.">
   </a>
-  <a href="https://codecov.io/github/neo-project/neo/branch/master/graph/badge.svg">
-    <img src="https://codecov.io/github/neo-project/neo/branch/master/graph/badge.svg" alt="Current Coverage Status." />
+  <a href="https://codecov.io/github/george-key/neo/branch/master/graph/badge.svg">
+    <img src="https://codecov.io/github/george-key/neo/branch/master/graph/badge.svg" alt="Current Coverage Status." />
   </a>
-  <a href="https://github.com/neo-project/neo">
-    <img src="https://tokei.rs/b1/github/neo-project/neo?category=lines" alt="Current total lines.">
+  <a href="https://github.com/george-key/neo">
+    <img src="https://tokei.rs/b1/github/george-key/neo?category=lines" alt="Current total lines.">
   </a>	
   <a href="https://github.com/neo-project/neo/blob/master/LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License.">
