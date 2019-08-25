@@ -1,7 +1,7 @@
 <p align="center">
 <img
-    src="https://neo-cdn.azureedge.net/images/neo_logo.svg"
-    width="250px">
+    src="https://repository-images.githubusercontent.com/204246907/ad79dd00-c71b-11e9-9a51-f03849ba308f"
+    width="550px">
 </p>
 
 <p align="center">
