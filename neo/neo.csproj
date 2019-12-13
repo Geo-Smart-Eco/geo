@@ -1,23 +1,28 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Copyright>2015-2019 The Neo Project</Copyright>
+    <Copyright>2015-2019 The Neo Project, 2019 George Key</Copyright>
     <AssemblyTitle>Neo</AssemblyTitle>
-    <Version>2.10.1</Version>
-    <Authors>The Neo Project</Authors>
+    <Version>3.1.1.0-preview1</Version>
+    <Authors>Geo, The Neo Project</Authors>
     <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>Neo</AssemblyName>
-    <PackageId>Neo</PackageId>
-    <PackageTags>NEO;AntShares;Blockchain;Smart Contract</PackageTags>
-    <PackageProjectUrl>https://github.com/neo-project/neo</PackageProjectUrl>
+    <PackageId>GeorgeKey.Geo</PackageId>
+    <PackageTags>GEO;NEO;AntShares;Blockchain;Smart Contract</PackageTags>
+    <PackageProjectUrl>https://github.com/george-key/geo</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/neo-project/neo.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/george-key/geo.git</RepositoryUrl>
     <RootNamespace>Neo</RootNamespace>
-    <Company>The Neo Project</Company>
-    <Description>Neo</Description>
+    <Company>Geo</Company>
+    <Description>Geo</Description>
     <LangVersion>latest</LangVersion>
+    <AssemblyVersion>3.1.1.0</AssemblyVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Product>Geo</Product>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageIconUrl>https://raw.githubusercontent.com/george-key/geo/master/geo_logo.svg</PackageIconUrl>
   </PropertyGroup>
 
   <ItemGroup>
