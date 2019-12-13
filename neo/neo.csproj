@@ -22,7 +22,10 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Product>Geo</Product>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageIconUrl>https://raw.githubusercontent.com/george-key/geo/master/geo_logo.svg</PackageIconUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/george-key/geo/master/geo_logo.png</PackageIconUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
+    <PackageReleaseNotes>Preview
+License: https://raw.githubusercontent.com/george-key/geo/master/LICENSE</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
