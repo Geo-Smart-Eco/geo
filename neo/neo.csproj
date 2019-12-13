@@ -3,9 +3,10 @@
   <PropertyGroup>
     <Copyright>2015-2019 The Neo Project, 2019 George Key</Copyright>
     <AssemblyTitle>Neo</AssemblyTitle>
-    <Version>3.1.1.0-preview1</Version>
+    <Version>3.1.1.1-preview1</Version>
+    <VersionSuffix>preview1</VersionSuffix>
     <Authors>Geo, The Neo Project</Authors>
-    <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>Neo</AssemblyName>
     <PackageId>GeorgeKey.Geo</PackageId>
@@ -17,8 +18,7 @@
     <RootNamespace>Neo</RootNamespace>
     <Company>Geo</Company>
     <Description>Geo</Description>
-    <LangVersion>latest</LangVersion>
-    <AssemblyVersion>3.1.1.0</AssemblyVersion>
+    <AssemblyVersion>3.1.1.1</AssemblyVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Product>Geo</Product>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -29,20 +29,13 @@ License: https://raw.githubusercontent.com/george-key/geo/master/LICENSE</Packag
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Akka" Version="1.3.11" />
-    <PackageReference Include="K4os.Compression.LZ4" Version="1.1.3" />
-    <PackageReference Include="Microsoft.AspNetCore.ResponseCompression" Version="2.2.0" />
+    <PackageReference Include="Akka" Version="1.3.16" />
+    <PackageReference Include="K4os.Compression.LZ4" Version="1.1.11" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel.Https" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.WebSockets" Version="2.2.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.4" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
-    <PackageReference Include="Neo.VM" Version="3.0.0-preview1" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="4.5.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net47'">
-    <PackageReference Include="Replicon.Cryptography.SCrypt" Version="1.1.6.13" />
+    <PackageReference Include="Microsoft.AspNetCore.WebSockets" Version="2.2.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.0.1" />
+    <PackageReference Include="Neo.VM" Version="3.0.0-CI00176" />
   </ItemGroup>
 
 </Project>

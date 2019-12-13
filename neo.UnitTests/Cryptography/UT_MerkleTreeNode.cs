@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.Cryptography;
 using System.Text;
@@ -23,7 +23,7 @@ namespace Neo.UnitTests.Cryptography
         public void TestConstructor()
         {
             byte[] byteArray = Encoding.ASCII.GetBytes("hello world");
-            var hash = new UInt256(Crypto.Default.Hash256(byteArray));
+            var hash = new UInt256(Crypto.Hash256(byteArray));
             node.Hash = hash;
 
             node.Hash.Should().Be(hash);

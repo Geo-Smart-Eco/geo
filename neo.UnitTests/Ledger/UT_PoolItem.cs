@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Neo.Ledger;
@@ -11,7 +11,6 @@ namespace Neo.UnitTests.Ledger
     [TestClass]
     public class UT_PoolItem
     {
-        //private PoolItem uut;
         private static readonly Random TestRandom = new Random(1337); // use fixed seed for guaranteed determinism
 
         [TestInitialize]
@@ -68,11 +67,11 @@ namespace Neo.UnitTests.Ledger
                 PoolItem pitem1 = new PoolItem(tx1);
                 PoolItem pitem2 = new PoolItem(tx2);
 
-                // pitem2 < pitem1 (fee) => -1
-                pitem2.CompareTo(pitem1).Should().Be(-1);
+                // pitem2.tx.Hash < pitem1.tx.Hash => 1 descending order
+                pitem2.CompareTo(pitem1).Should().Be(1);
 
-                // pitem1 > pitem2  (fee) => 1
-                pitem1.CompareTo(pitem2).Should().Be(1);
+                // pitem2.tx.Hash > pitem1.tx.Hash => -1 descending order
+                pitem1.CompareTo(pitem2).Should().Be(-1);
             }
         }
 
@@ -97,7 +96,7 @@ namespace Neo.UnitTests.Ledger
             do
             {
                 tx = GenerateTx(networkFee, size);
-            } while (tx.Hash >= new UInt256(TestUtils.GetByteArray(32, firstHashByte)));
+            } while (tx.Hash < new UInt256(TestUtils.GetByteArray(32, firstHashByte)));
 
             return tx;
         }
@@ -108,7 +107,7 @@ namespace Neo.UnitTests.Ledger
             do
             {
                 tx = GenerateTx(networkFee, size);
-            } while (tx.Hash <= new UInt256(TestUtils.GetByteArray(32, firstHashByte)));
+            } while (tx.Hash > new UInt256(TestUtils.GetByteArray(32, firstHashByte)));
 
             return tx;
         }

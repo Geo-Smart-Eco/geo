@@ -1,5 +1,6 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Neo.Network.P2P.Payloads;
+using Neo.Persistence;
 using Neo.SmartContract;
 using Neo.SmartContract.Native;
 using Neo.VM;
@@ -7,7 +8,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Text;
 
 namespace Neo.UnitTests.Extensions
 {
@@ -34,14 +34,14 @@ namespace Neo.UnitTests.Extensions
 
             public void DeserializeUnsigned(BinaryReader reader) { }
 
-            public UInt160[] GetScriptHashesForVerifying(Persistence.Snapshot snapshot) => _hashForVerify;
+            public UInt160[] GetScriptHashesForVerifying(StoreView snapshot) => _hashForVerify;
 
             public void Serialize(BinaryWriter writer) { }
 
             public void SerializeUnsigned(BinaryWriter writer) { }
         }
 
-        public static bool Transfer(this NativeContract contract, Persistence.Snapshot snapshot, byte[] from, byte[] to, BigInteger amount, bool signFrom)
+        public static bool Transfer(this NativeContract contract, StoreView snapshot, byte[] from, byte[] to, BigInteger amount, bool signFrom)
         {
             var engine = new ApplicationEngine(TriggerType.Application,
                 new ManualWitness(signFrom ? new UInt160(from) : null), snapshot, 0, true);
@@ -65,7 +65,7 @@ namespace Neo.UnitTests.Extensions
             var result = engine.ResultStack.Pop();
             result.Should().BeOfType(typeof(VM.Types.Boolean));
 
-            return (result as VM.Types.Boolean).GetBoolean();
+            return result.ToBoolean();
         }
 
         public static string[] SupportedStandards(this NativeContract contract)
@@ -86,11 +86,11 @@ namespace Neo.UnitTests.Extensions
             result.Should().BeOfType(typeof(VM.Types.Array));
 
             return (result as VM.Types.Array).ToArray()
-                .Select(u => Encoding.ASCII.GetString(u.GetByteArray()))
+                .Select(u => u.GetString())
                 .ToArray();
         }
 
-        public static BigInteger TotalSupply(this NativeContract contract, Persistence.Snapshot snapshot)
+        public static BigInteger TotalSupply(this NativeContract contract, StoreView snapshot)
         {
             var engine = new ApplicationEngine(TriggerType.Application, null, snapshot, 0, true);
 
@@ -110,7 +110,7 @@ namespace Neo.UnitTests.Extensions
             return (result as VM.Types.Integer).GetBigInteger();
         }
 
-        public static BigInteger BalanceOf(this NativeContract contract, Persistence.Snapshot snapshot, byte[] account)
+        public static BigInteger BalanceOf(this NativeContract contract, StoreView snapshot, byte[] account)
         {
             var engine = new ApplicationEngine(TriggerType.Application, null, snapshot, 0, true);
 
@@ -168,7 +168,7 @@ namespace Neo.UnitTests.Extensions
             var result = engine.ResultStack.Pop();
             result.Should().BeOfType(typeof(VM.Types.ByteArray));
 
-            return Encoding.UTF8.GetString((result as VM.Types.ByteArray).GetByteArray());
+            return result.GetString();
         }
 
         public static string Name(this NativeContract contract)
@@ -188,7 +188,7 @@ namespace Neo.UnitTests.Extensions
             var result = engine.ResultStack.Pop();
             result.Should().BeOfType(typeof(VM.Types.ByteArray));
 
-            return Encoding.UTF8.GetString((result as VM.Types.ByteArray).GetByteArray());
+            return result.GetString();
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.IO.Json;
 using Neo.Wallets;
@@ -17,10 +17,11 @@ namespace Neo.UnitTests.Wallets.NEP6
     public class UT_NEP6Wallet
     {
         private NEP6Wallet uut;
-        private static string wPath;
+        private string wPath;
         private static KeyPair keyPair;
         private static string nep2key;
         private static UInt160 testScriptHash;
+        private string rootPath;
 
         public static string GetRandomPath()
         {
@@ -48,10 +49,10 @@ namespace Neo.UnitTests.Wallets.NEP6
 
         private string CreateWalletFile()
         {
-            string path = GetRandomPath();
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-            path = Path.Combine(path, "wallet.json");
-            File.WriteAllText(path, "{\"name\":\"name\",\"version\":\"0.0\",\"scrypt\":{\"n\":0,\"r\":0,\"p\":0},\"accounts\":[],\"extra\":{}}");
+            rootPath = GetRandomPath();
+            if (!Directory.Exists(rootPath)) Directory.CreateDirectory(rootPath);
+            string path = Path.Combine(rootPath, "wallet.json");
+            File.WriteAllText(path, "{\"name\":\"name\",\"version\":\"3.0\",\"scrypt\":{\"n\":0,\"r\":0,\"p\":0},\"accounts\":[],\"extra\":{}}");
             return path;
         }
 
@@ -66,6 +67,7 @@ namespace Neo.UnitTests.Wallets.NEP6
         public void TestCleanUp()
         {
             if (File.Exists(wPath)) File.Delete(wPath);
+            if (Directory.Exists(rootPath)) Directory.Delete(rootPath);
         }
 
         [TestMethod]
@@ -74,11 +76,11 @@ namespace Neo.UnitTests.Wallets.NEP6
             NEP6Wallet wallet = new NEP6Wallet(wPath);
             Assert.AreEqual("name", wallet.Name);
             Assert.AreEqual(new ScryptParameters(0, 0, 0).ToJson().ToString(), wallet.Scrypt.ToJson().ToString());
-            Assert.AreEqual(new Version().ToString(), wallet.Version.ToString());
+            Assert.AreEqual(new Version("3.0").ToString(), wallet.Version.ToString());
             wallet = new NEP6Wallet("", "test");
             Assert.AreEqual("test", wallet.Name);
             Assert.AreEqual(ScryptParameters.Default.ToJson().ToString(), wallet.Scrypt.ToJson().ToString());
-            Assert.AreEqual(Version.Parse("1.0"), wallet.Version);
+            Assert.AreEqual(Version.Parse("3.0"), wallet.Version);
         }
 
         [TestMethod]
@@ -86,14 +88,14 @@ namespace Neo.UnitTests.Wallets.NEP6
         {
             JObject wallet = new JObject();
             wallet["name"] = "test";
-            wallet["version"] = Version.Parse("1.0").ToString();
+            wallet["version"] = Version.Parse("3.0").ToString();
             wallet["scrypt"] = ScryptParameters.Default.ToJson();
             wallet["accounts"] = new JArray();
             wallet["extra"] = new JObject();
-            wallet.ToString().Should().Be("{\"name\":\"test\",\"version\":\"1.0\",\"scrypt\":{\"n\":16384,\"r\":8,\"p\":8},\"accounts\":[],\"extra\":{}}");
+            wallet.ToString().Should().Be("{\"name\":\"test\",\"version\":\"3.0\",\"scrypt\":{\"n\":16384,\"r\":8,\"p\":8},\"accounts\":[],\"extra\":{}}");
             NEP6Wallet w = new NEP6Wallet(wallet);
             Assert.AreEqual("test", w.Name);
-            Assert.AreEqual(Version.Parse("1.0").ToString(), w.Version.ToString());
+            Assert.AreEqual(Version.Parse("3.0").ToString(), w.Version.ToString());
         }
 
         [TestMethod]
@@ -105,7 +107,7 @@ namespace Neo.UnitTests.Wallets.NEP6
         [TestMethod]
         public void TestGetVersion()
         {
-            Assert.AreEqual(new System.Version().ToString(), uut.Version.ToString());
+            Assert.AreEqual(new System.Version("3.0").ToString(), uut.Version.ToString());
         }
 
         [TestMethod]
@@ -293,7 +295,7 @@ namespace Neo.UnitTests.Wallets.NEP6
             Assert.AreEqual(false, result);
             JObject wallet = new JObject();
             wallet["name"] = "name";
-            wallet["version"] = new Version().ToString();
+            wallet["version"] = new Version("3.0").ToString();
             wallet["scrypt"] = new ScryptParameters(0, 0, 0).ToJson();
             wallet["accounts"] = new JArray();
             wallet["extra"] = new JObject();
@@ -324,10 +326,12 @@ namespace Neo.UnitTests.Wallets.NEP6
             string path = GetRandomPath();
             UserWallet uw = UserWallet.Create(path, "123");
             uw.CreateAccount(keyPair.PrivateKey);
-            string npath = Path.Combine(path, "w.json");
+            string npath = CreateWalletFile();  // Scrypt test values
             NEP6Wallet nw = NEP6Wallet.Migrate(npath, path, "123");
             bool result = nw.Contains(testScriptHash);
             Assert.AreEqual(true, result);
+            if (File.Exists(path)) File.Delete(path);
+            if (File.Exists(npath)) File.Delete(npath);
         }
 
         [TestMethod]
@@ -335,7 +339,7 @@ namespace Neo.UnitTests.Wallets.NEP6
         {
             JObject wallet = new JObject();
             wallet["name"] = "name";
-            wallet["version"] = new System.Version().ToString();
+            wallet["version"] = new System.Version("3.0").ToString();
             wallet["scrypt"] = new ScryptParameters(0, 0, 0).ToJson();
             wallet["accounts"] = new JArray();
             wallet["extra"] = new JObject();
@@ -377,7 +381,7 @@ namespace Neo.UnitTests.Wallets.NEP6
             Assert.AreEqual(false, uut.Contains(testScriptHash));
             JObject wallet = new JObject();
             wallet["name"] = "name";
-            wallet["version"] = new Version().ToString();
+            wallet["version"] = new Version("3.0").ToString();
             wallet["scrypt"] = new ScryptParameters(0, 0, 0).ToJson();
             wallet["accounts"] = new JArray();
             wallet["extra"] = new JObject();
@@ -392,7 +396,7 @@ namespace Neo.UnitTests.Wallets.NEP6
         public void Test_NEP6Wallet_Json()
         {
             uut.Name.Should().Be("noname");
-            uut.Version.Should().Be(new Version());
+            uut.Version.Should().Be(new Version("3.0"));
             uut.Scrypt.Should().NotBeNull();
             uut.Scrypt.N.Should().Be(new ScryptParameters(0, 0, 0).N);
         }

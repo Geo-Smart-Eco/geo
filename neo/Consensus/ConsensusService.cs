@@ -46,7 +46,7 @@ namespace Neo.Consensus
         /// </summary>
         private bool isRecovering = false;
 
-        public ConsensusService(IActorRef localNode, IActorRef taskManager, Store store, Wallet wallet)
+        public ConsensusService(IActorRef localNode, IActorRef taskManager, IStore store, Wallet wallet)
             : this(localNode, taskManager, new ConsensusContext(wallet, store))
         {
         }
@@ -61,7 +61,7 @@ namespace Neo.Consensus
 
         private bool AddTransaction(Transaction tx, bool verify)
         {
-            if (verify && !tx.Verify(context.Snapshot, context.Transactions.Values))
+            if (verify && tx.Verify(context.Snapshot, context.SendersFeeMonitor.GetSenderFee(tx.Sender)) != RelayResultReason.Succeed)
             {
                 Log($"Invalid transaction: {tx.Hash}{Environment.NewLine}{tx.ToArray().ToHexString()}", LogLevel.Warning);
                 RequestChangeView(ChangeViewReason.TxInvalid);
@@ -74,6 +74,12 @@ namespace Neo.Consensus
                 return false;
             }
             context.Transactions[tx.Hash] = tx;
+            context.SendersFeeMonitor.AddSenderFee(tx);
+            return CheckPrepareResponse();
+        }
+
+        private bool CheckPrepareResponse()
+        {
             if (context.TransactionHashes.Length == context.Transactions.Count)
             {
                 // if we are the primary for this view, but acting as a backup because we recovered our own
@@ -183,7 +189,7 @@ namespace Neo.Consensus
 
         private void Log(string message, LogLevel level = LogLevel.Info)
         {
-            Plugin.Log(nameof(ConsensusService), level, message);
+            Utility.Log(nameof(ConsensusService), level, message);
         }
 
         private void OnChangeViewReceived(ConsensusPayload payload, ChangeView message)
@@ -197,7 +203,7 @@ namespace Neo.Consensus
             if (message.NewViewNumber <= expectedView)
                 return;
 
-            Log($"{nameof(OnChangeViewReceived)}: height={payload.BlockIndex} view={message.ViewNumber} index={payload.ValidatorIndex} nv={message.NewViewNumber}");
+            Log($"{nameof(OnChangeViewReceived)}: height={payload.BlockIndex} view={message.ViewNumber} index={payload.ValidatorIndex} nv={message.NewViewNumber} reason={message.Reason}");
             context.ChangeViewPayloads[payload.ValidatorIndex] = payload;
             CheckExpectedView(message.NewViewNumber);
         }
@@ -225,7 +231,7 @@ namespace Neo.Consensus
                 {
                     existingCommitPayload = payload;
                 }
-                else if (Crypto.Default.VerifySignature(hashData, commit.Signature,
+                else if (Crypto.VerifySignature(hashData, commit.Signature,
                     context.Validators[payload.ValidatorIndex].EncodePoint(false)))
                 {
                     existingCommitPayload = payload;
@@ -399,7 +405,7 @@ namespace Neo.Consensus
             if (context.RequestSentOrReceived || context.NotAcceptingPayloadsDueToViewChanging) return;
             if (payload.ValidatorIndex != context.Block.ConsensusData.PrimaryIndex || message.ViewNumber != context.ViewNumber) return;
             Log($"{nameof(OnPrepareRequestReceived)}: height={payload.BlockIndex} view={message.ViewNumber} index={payload.ValidatorIndex} tx={message.TransactionHashes.Length}");
-            if (message.Timestamp <= context.PrevHeader.Timestamp || message.Timestamp > TimeProvider.Current.UtcNow.AddMinutes(10).ToTimestampMS())
+            if (message.Timestamp <= context.PrevHeader.Timestamp || message.Timestamp > TimeProvider.Current.UtcNow.AddMilliseconds(8 * Blockchain.MillisecondsPerBlock).ToTimestampMS())
             {
                 Log($"Timestamp incorrect: {message.Timestamp}", LogLevel.Warning);
                 return;
@@ -418,6 +424,7 @@ namespace Neo.Consensus
             context.Block.ConsensusData.Nonce = message.Nonce;
             context.TransactionHashes = message.TransactionHashes;
             context.Transactions = new Dictionary<UInt256, Transaction>();
+            context.SendersFeeMonitor = new SendersFeeMonitor();
             for (int i = 0; i < context.PreparationPayloads.Length; i++)
                 if (context.PreparationPayloads[i] != null)
                     if (!context.PreparationPayloads[i].GetDeserializedMessage<PrepareResponse>().PreparationHash.Equals(payload.Hash))
@@ -426,8 +433,16 @@ namespace Neo.Consensus
             byte[] hashData = context.EnsureHeader().GetHashData();
             for (int i = 0; i < context.CommitPayloads.Length; i++)
                 if (context.CommitPayloads[i]?.ConsensusMessage.ViewNumber == context.ViewNumber)
-                    if (!Crypto.Default.VerifySignature(hashData, context.CommitPayloads[i].GetDeserializedMessage<Commit>().Signature, context.Validators[i].EncodePoint(false)))
+                    if (!Crypto.VerifySignature(hashData, context.CommitPayloads[i].GetDeserializedMessage<Commit>().Signature, context.Validators[i].EncodePoint(false)))
                         context.CommitPayloads[i] = null;
+
+            if (context.TransactionHashes.Length == 0)
+            {
+                // There are no tx so we should act like if all the transactions were filled
+                CheckPrepareResponse();
+                return;
+            }
+
             Dictionary<UInt256, Transaction> mempoolVerified = Blockchain.Singleton.MemPool.GetVerifiedTransactions().ToDictionary(p => p.Hash);
             List<Transaction> unverified = new List<Transaction>();
             foreach (UInt256 hash in context.TransactionHashes)
@@ -558,7 +573,7 @@ namespace Neo.Consensus
                 {
                     var reason = ChangeViewReason.Timeout;
 
-                    if (context.Block != null && context.TransactionHashes?.Count() > context.Transactions?.Count)
+                    if (context.Block != null && context.TransactionHashes?.Length > context.Transactions?.Count)
                     {
                         reason = ChangeViewReason.TxNotFound;
                     }
@@ -586,7 +601,7 @@ namespace Neo.Consensus
             base.PostStop();
         }
 
-        public static Props Props(IActorRef localNode, IActorRef taskManager, Store store, Wallet wallet)
+        public static Props Props(IActorRef localNode, IActorRef taskManager, IStore store, Wallet wallet)
         {
             return Akka.Actor.Props.Create(() => new ConsensusService(localNode, taskManager, store, wallet)).WithMailbox("consensus-service-mailbox");
         }
@@ -602,11 +617,11 @@ namespace Neo.Consensus
             ChangeTimer(TimeSpan.FromMilliseconds(Blockchain.MillisecondsPerBlock << (expectedView + 1)));
             if ((context.CountCommitted + context.CountFailed) > context.F)
             {
-                Log($"Skip requesting change view to nv={expectedView} because nc={context.CountCommitted} nf={context.CountFailed}");
+                Log($"skip requesting change view: height={context.Block.Index} view={context.ViewNumber} nv={expectedView} nc={context.CountCommitted} nf={context.CountFailed} reason={reason}");
                 RequestRecovery();
                 return;
             }
-            Log($"request change view: height={context.Block.Index} view={context.ViewNumber} nv={expectedView} nc={context.CountCommitted} nf={context.CountFailed}");
+            Log($"request change view: height={context.Block.Index} view={context.ViewNumber} nv={expectedView} nc={context.CountCommitted} nf={context.CountFailed} reason={reason}");
             localNode.Tell(new LocalNode.SendDirectly { Inventory = context.MakeChangeView(reason) });
             CheckExpectedView(expectedView);
         }

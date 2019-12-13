@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.IO;
 using Neo.IO.Caching;
@@ -105,7 +105,7 @@ namespace Neo.UnitTests.IO.Caching
     {
         public Dictionary<TKey, TValue> InnerDict = new Dictionary<TKey, TValue>();
 
-        public override void DeleteInternal(TKey key)
+        protected override void DeleteInternal(TKey key)
         {
             InnerDict.Remove(key);
         }
@@ -115,9 +115,9 @@ namespace Neo.UnitTests.IO.Caching
             InnerDict.Add(key, value);
         }
 
-        protected override IEnumerable<KeyValuePair<TKey, TValue>> FindInternal(byte[] key_prefix)
+        protected override IEnumerable<(TKey, TValue)> FindInternal(byte[] key_prefix)
         {
-            return InnerDict.Where(kvp => kvp.Key.ToArray().Take(key_prefix.Length).SequenceEqual(key_prefix));
+            return InnerDict.Where(kvp => kvp.Key.ToArray().Take(key_prefix.Length).SequenceEqual(key_prefix)).Select(p => (p.Key, p.Value));
         }
 
         protected override TValue GetInternal(TKey key)
@@ -175,7 +175,7 @@ namespace Neo.UnitTests.IO.Caching
             {
                 var item = myDataCache[new MyKey("key1")];
             };
-            action.ShouldThrow<KeyNotFoundException>();
+            action.Should().Throw<KeyNotFoundException>();
         }
 
         [TestMethod]
@@ -188,7 +188,7 @@ namespace Neo.UnitTests.IO.Caching
             {
                 var item = myDataCache[new MyKey("key1")];
             };
-            action.ShouldThrow<KeyNotFoundException>();
+            action.Should().Throw<KeyNotFoundException>();
         }
 
         [TestMethod]
@@ -198,14 +198,14 @@ namespace Neo.UnitTests.IO.Caching
             myDataCache[new MyKey("key1")].Should().Be(new MyValue("value1"));
 
             Action action = () => myDataCache.Add(new MyKey("key1"), new MyValue("value1"));
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
 
             myDataCache.InnerDict.Add(new MyKey("key2"), new MyValue("value2"));
             myDataCache.Delete(new MyKey("key2"));                      // trackable.State = TrackState.Deleted    
             myDataCache.Add(new MyKey("key2"), new MyValue("value2"));  // trackable.State = TrackState.Changed
 
             action = () => myDataCache.Add(new MyKey("key2"), new MyValue("value2"));
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [TestMethod]

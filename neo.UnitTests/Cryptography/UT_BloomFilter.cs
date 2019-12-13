@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.Cryptography;
 using System;
@@ -27,12 +27,12 @@ namespace Neo.UnitTests.Cryptography
             int m = -7, n = 10;
             uint nTweak = 123456;
             Action action = () => new BloomFilter(m, n, nTweak);
-            action.ShouldThrow<ArgumentOutOfRangeException>();
+            action.Should().Throw<ArgumentOutOfRangeException>();
 
             m = 7;
             n = -10;
             action = () => new BloomFilter(m, n, nTweak);
-            action.ShouldThrow<ArgumentOutOfRangeException>();
+            action.Should().Throw<ArgumentOutOfRangeException>();
 
             n = 10;
             BloomFilter filter = new BloomFilter(m, n, nTweak);

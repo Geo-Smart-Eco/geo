@@ -6,8 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using VMArray = Neo.VM.Types.Array;
-using VMBoolean = Neo.VM.Types.Boolean;
+using System.Text;
+using Array = Neo.VM.Types.Array;
+using Boolean = Neo.VM.Types.Boolean;
 
 namespace Neo.VM
 {
@@ -149,6 +150,9 @@ namespace Neo.VM
                 case Enum data:
                     sb.EmitPush(BigInteger.Parse(data.ToString("d")));
                     break;
+                case null:
+                    sb.Emit(OpCode.PUSHNULL);
+                    break;
                 default:
                     throw new ArgumentException();
             }
@@ -162,52 +166,97 @@ namespace Neo.VM
             return sb.EmitSysCall(method);
         }
 
+        public static BigInteger GetBigInteger(this StackItem item)
+        {
+            if (!(item is PrimitiveType primitive))
+                throw new ArgumentException();
+            return primitive.ToBigInteger();
+        }
+
+        public static int GetByteLength(this StackItem item)
+        {
+            if (!(item is PrimitiveType primitive))
+                throw new ArgumentException();
+            return primitive.GetByteLength();
+        }
+
+        public static ReadOnlySpan<byte> GetSpan(this StackItem item)
+        {
+            if (!(item is PrimitiveType primitive))
+                throw new ArgumentException();
+            return primitive.ToByteArray();
+        }
+
+        public static string GetString(this StackItem item)
+        {
+            return Encoding.UTF8.GetString(item.GetSpan());
+        }
+
+        /// <summary>
+        /// Generate scripts to call a specific method from a specific contract.
+        /// </summary>
+        /// <param name="scriptHash">contract script hash</param>
+        /// <param name="operation">contract operation</param>
+        /// <param name="args">operation arguments</param>
+        /// <returns></returns>
+        public static byte[] MakeScript(this UInt160 scriptHash, string operation, params object[] args)
+        {
+            using (ScriptBuilder sb = new ScriptBuilder())
+            {
+                if (args.Length > 0)
+                    sb.EmitAppCall(scriptHash, operation, args);
+                else
+                    sb.EmitAppCall(scriptHash, operation);
+                return sb.ToArray();
+            }
+        }
+
         public static ContractParameter ToParameter(this StackItem item)
         {
             return ToParameter(item, null);
         }
 
-        private static ContractParameter ToParameter(StackItem item, List<Tuple<StackItem, ContractParameter>> context)
+        private static ContractParameter ToParameter(StackItem item, List<(StackItem, ContractParameter)> context)
         {
             ContractParameter parameter = null;
             switch (item)
             {
-                case VMArray array:
+                case Array array:
                     if (context is null)
-                        context = new List<Tuple<StackItem, ContractParameter>>();
+                        context = new List<(StackItem, ContractParameter)>();
                     else
-                        parameter = context.FirstOrDefault(p => ReferenceEquals(p.Item1, item))?.Item2;
+                        (_, parameter) = context.FirstOrDefault(p => ReferenceEquals(p.Item1, item));
                     if (parameter is null)
                     {
                         parameter = new ContractParameter { Type = ContractParameterType.Array };
-                        context.Add(new Tuple<StackItem, ContractParameter>(item, parameter));
+                        context.Add((item, parameter));
                         parameter.Value = array.Select(p => ToParameter(p, context)).ToList();
                     }
                     break;
                 case Map map:
                     if (context is null)
-                        context = new List<Tuple<StackItem, ContractParameter>>();
+                        context = new List<(StackItem, ContractParameter)>();
                     else
-                        parameter = context.FirstOrDefault(p => ReferenceEquals(p.Item1, item))?.Item2;
+                        (_, parameter) = context.FirstOrDefault(p => ReferenceEquals(p.Item1, item));
                     if (parameter is null)
                     {
                         parameter = new ContractParameter { Type = ContractParameterType.Map };
-                        context.Add(new Tuple<StackItem, ContractParameter>(item, parameter));
+                        context.Add((item, parameter));
                         parameter.Value = map.Select(p => new KeyValuePair<ContractParameter, ContractParameter>(ToParameter(p.Key, context), ToParameter(p.Value, context))).ToList();
                     }
                     break;
-                case VMBoolean _:
+                case Boolean _:
                     parameter = new ContractParameter
                     {
                         Type = ContractParameterType.Boolean,
-                        Value = item.GetBoolean()
+                        Value = item.ToBoolean()
                     };
                     break;
                 case ByteArray _:
                     parameter = new ContractParameter
                     {
                         Type = ContractParameterType.ByteArray,
-                        Value = item.GetByteArray()
+                        Value = item.GetSpan().ToArray()
                     };
                     break;
                 case Integer _:
@@ -223,10 +272,78 @@ namespace Neo.VM
                         Type = ContractParameterType.InteropInterface
                     };
                     break;
-                default:
+                case Null _:
+                    parameter = new ContractParameter
+                    {
+                        Type = ContractParameterType.Any
+                    };
+                    break;
+                default: // Null included
                     throw new ArgumentException();
             }
             return parameter;
+        }
+
+        public static StackItem ToStackItem(this ContractParameter parameter)
+        {
+            return ToStackItem(parameter, null);
+        }
+
+        private static StackItem ToStackItem(ContractParameter parameter, List<(StackItem, ContractParameter)> context)
+        {
+            StackItem stackItem = null;
+            switch (parameter.Type)
+            {
+                case ContractParameterType.Array:
+                    if (context is null)
+                        context = new List<(StackItem, ContractParameter)>();
+                    else
+                        (stackItem, _) = context.FirstOrDefault(p => ReferenceEquals(p.Item2, parameter));
+                    if (stackItem is null)
+                    {
+                        stackItem = new Array(((IList<ContractParameter>)parameter.Value).Select(p => ToStackItem(p, context)));
+                        context.Add((stackItem, parameter));
+                    }
+                    break;
+                case ContractParameterType.Map:
+                    if (context is null)
+                        context = new List<(StackItem, ContractParameter)>();
+                    else
+                        (stackItem, _) = context.FirstOrDefault(p => ReferenceEquals(p.Item2, parameter));
+                    if (stackItem is null)
+                    {
+                        stackItem = new Map(((IList<KeyValuePair<ContractParameter, ContractParameter>>)parameter.Value).ToDictionary(p => (PrimitiveType)ToStackItem(p.Key, context), p => ToStackItem(p.Value, context)));
+                        context.Add((stackItem, parameter));
+                    }
+                    break;
+                case ContractParameterType.Boolean:
+                    stackItem = (bool)parameter.Value;
+                    break;
+                case ContractParameterType.ByteArray:
+                case ContractParameterType.Signature:
+                    stackItem = (byte[])parameter.Value;
+                    break;
+                case ContractParameterType.Integer:
+                    stackItem = (BigInteger)parameter.Value;
+                    break;
+                case ContractParameterType.Hash160:
+                    stackItem = ((UInt160)parameter.Value).ToArray();
+                    break;
+                case ContractParameterType.Hash256:
+                    stackItem = ((UInt256)parameter.Value).ToArray();
+                    break;
+                case ContractParameterType.PublicKey:
+                    stackItem = ((ECPoint)parameter.Value).EncodePoint(true);
+                    break;
+                case ContractParameterType.String:
+                    stackItem = (string)parameter.Value;
+                    break;
+                case ContractParameterType.InteropInterface:
+                    break;
+                default:
+                    throw new ArgumentException($"ContractParameterType({parameter.Type}) is not supported to StackItem.");
+            }
+            return stackItem;
         }
     }
 }

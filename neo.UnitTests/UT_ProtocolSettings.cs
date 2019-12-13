@@ -1,10 +1,9 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+using Neo.Wallets;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 
 namespace Neo.UnitTests
 {
@@ -30,6 +29,15 @@ namespace Neo.UnitTests
         public void Cleanup()
         {
             ResetProtocolSettings();
+        }
+
+        [TestMethod]
+        public void CheckFirstLetterOfAddresses()
+        {
+            UInt160 min = UInt160.Parse("0x0000000000000000000000000000000000000000");
+            min.ToAddress()[0].Should().Be('N');
+            UInt160 max = UInt160.Parse("0xffffffffffffffffffffffffffffffffffffffff");
+            max.ToAddress()[0].Should().Be('N');
         }
 
         [TestMethod]
@@ -91,6 +99,24 @@ namespace Neo.UnitTests
             config = new ConfigurationBuilder().AddInMemoryCollection(dict).Build();
             ProtocolSettings.Initialize(config).Should().BeFalse();
             ProtocolSettings.Default.Magic.Should().Be(expectedMagic);
+        }
+
+        [TestMethod]
+        public void TestGetMemoryPoolMaxTransactions()
+        {
+            ProtocolSettings.Default.MemoryPoolMaxTransactions.Should().Be(50000);
+        }
+
+        [TestMethod]
+        public void TestGetMillisecondsPerBlock()
+        {
+            ProtocolSettings.Default.MillisecondsPerBlock.Should().Be(200);
+        }
+
+        [TestMethod]
+        public void TestGetSeedList()
+        {
+            ProtocolSettings.Default.SeedList.Should().BeEquivalentTo(new string[] { "seed1.neo.org:10333", "seed2.neo.org:10333", "seed3.neo.org:10333", "seed4.neo.org:10333", "seed5.neo.org:10333", });
         }
     }
 }

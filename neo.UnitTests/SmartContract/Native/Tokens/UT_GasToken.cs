@@ -1,12 +1,13 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Neo.IO;
 using Neo.Ledger;
 using Neo.Network.P2P.Payloads;
-using Neo.Persistence;
 using Neo.SmartContract;
 using Neo.SmartContract.Native;
 using Neo.UnitTests.Extensions;
 using Neo.VM;
+using Neo.VM.Types;
 using System;
 using System.Linq;
 using System.Numerics;
@@ -16,13 +17,10 @@ namespace Neo.UnitTests.SmartContract.Native.Tokens
     [TestClass]
     public class UT_GasToken
     {
-        Store Store;
-
         [TestInitialize]
         public void TestSetup()
         {
             TestBlockchain.InitializeMockNeoSystem();
-            Store = TestBlockchain.GetStore();
         }
 
         [TestMethod]
@@ -40,7 +38,7 @@ namespace Neo.UnitTests.SmartContract.Native.Tokens
         [TestMethod]
         public void Check_BalanceOfTransferAndBurn()
         {
-            var snapshot = Store.GetSnapshot().Clone();
+            var snapshot = Blockchain.Singleton.GetSnapshot();
             snapshot.PersistingBlock = new Block() { Index = 1000 };
 
             byte[] from = Contract.CreateMultiSigRedeemScript(Blockchain.StandbyValidators.Length / 2 + 1,
@@ -132,13 +130,54 @@ namespace Neo.UnitTests.SmartContract.Native.Tokens
         [TestMethod]
         public void Check_BadScript()
         {
-            var engine = new ApplicationEngine(TriggerType.Application, null, Store.GetSnapshot(), 0);
+            var engine = new ApplicationEngine(TriggerType.Application, null, Blockchain.Singleton.GetSnapshot(), 0);
 
             var script = new ScriptBuilder();
             script.Emit(OpCode.NOP);
             engine.LoadScript(script.ToArray());
 
             NativeContract.GAS.Invoke(engine).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TestGetSysFeeAmount1()
+        {
+            using (ApplicationEngine engine = NativeContract.GAS.TestCall("getSysFeeAmount", 2u))
+            {
+                engine.ResultStack.Peek().GetBigInteger().Should().Be(new BigInteger(0));
+                engine.ResultStack.Peek().GetType().Should().Be(typeof(Integer));
+            }
+
+            using (ApplicationEngine engine = NativeContract.GAS.TestCall("getSysFeeAmount", 0u))
+            {
+                engine.ResultStack.Peek().GetBigInteger().Should().Be(new BigInteger(0));
+            }
+        }
+
+        [TestMethod]
+        public void TestGetSysFeeAmount2()
+        {
+            var snapshot = Blockchain.Singleton.GetSnapshot();
+            NativeContract.GAS.GetSysFeeAmount(snapshot, 0).Should().Be(new BigInteger(0));
+            NativeContract.GAS.GetSysFeeAmount(snapshot, 1).Should().Be(new BigInteger(0));
+
+            byte[] key = BitConverter.GetBytes(1);
+            StorageKey storageKey = new StorageKey
+            {
+                ScriptHash = NativeContract.GAS.Hash,
+                Key = new byte[sizeof(byte) + (key?.Length ?? 0)]
+            };
+            storageKey.Key[0] = 15;
+            Buffer.BlockCopy(key, 0, storageKey.Key, 1, key.Length);
+
+            BigInteger sys_fee = new BigInteger(10);
+            snapshot.Storages.Add(storageKey, new StorageItem
+            {
+                Value = sys_fee.ToByteArrayStandard(),
+                IsConstant = true
+            });
+
+            NativeContract.GAS.GetSysFeeAmount(snapshot, 1).Should().Be(sys_fee);
         }
     }
 }

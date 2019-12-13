@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.IO;
 using Neo.IO.Caching;
@@ -89,7 +89,7 @@ namespace Neo.UnitTests.IO.Caching
             {
                 var item = cloneCache[new MyKey("key4")];
             };
-            action.ShouldThrow<KeyNotFoundException>();
+            action.Should().Throw<KeyNotFoundException>();
         }
 
         [TestMethod]

@@ -1,4 +1,4 @@
-﻿using Akka.TestKit.Xunit2;
+using Akka.TestKit.Xunit2;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.IO;
@@ -136,10 +136,6 @@ namespace Neo.UnitTests.Network.P2P
             msg = Message.Create(MessageCommand.Inv, s);
             uut.ShallDrop(msg, emptyQueue).Should().Be(false);
             uut.ShallDrop(msg, new object[] { msg }).Should().Be(false);
-            // GetData (drop)
-            msg = Message.Create(MessageCommand.GetData, s);
-            uut.ShallDrop(msg, emptyQueue).Should().Be(false);
-            uut.ShallDrop(msg, new object[] { msg }).Should().Be(true);
             // NotFound (no drop)
             msg = Message.Create(MessageCommand.NotFound, s);
             uut.ShallDrop(msg, emptyQueue).Should().Be(false);

@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.Cryptography;
 using Neo.Cryptography.ECC;
@@ -35,7 +35,7 @@ namespace Neo.UnitTests.Wallets
             for (int i = 0; i < privateKey31.Length; i++)
                 privateKey31[i] = (byte)random.Next(256);
             Action action = () => new KeyPair(privateKey31);
-            action.ShouldThrow<ArgumentException>();
+            action.Should().Throw<ArgumentException>();
         }
 
         [TestMethod]
@@ -81,7 +81,7 @@ namespace Neo.UnitTests.Wallets
             byte[] data = { 0x80, 0x01,0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
                 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
             KeyPair keyPair = new KeyPair(privateKey);
-            keyPair.Export().Should().Be(data.Base58CheckEncode());
+            keyPair.Export().Should().Be(Base58.Base58CheckEncode(data));
         }
 
         [TestMethod]

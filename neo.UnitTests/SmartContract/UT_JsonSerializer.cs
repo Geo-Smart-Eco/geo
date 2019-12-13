@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.IO.Json;
 using Neo.SmartContract;
 using Neo.VM;
@@ -31,9 +31,6 @@ namespace Neo.UnitTests.SmartContract
             Assert.ThrowsException<FormatException>(() => JObject.Parse(json));
 
             json = @"{""length"":99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999}";
-            Assert.ThrowsException<OverflowException>(() => JObject.Parse(json));
-
-            json = $"{{\"length\":{long.MaxValue}}}";
             Assert.ThrowsException<FormatException>(() => JObject.Parse(json));
         }
 
@@ -119,7 +116,7 @@ namespace Neo.UnitTests.SmartContract
             var json = @" ["""" ,  ""\b\f\t\n\r\/\\"" ]";
             var parsed = JObject.Parse(json);
 
-            Assert.AreEqual(@"["""",""\b\f\t\n\r\/\\""]", parsed.ToString());
+            Assert.AreEqual(@"["""",""\b\f\t\n\r/\\""]", parsed.ToString());
 
             json = @"[""\uD834\uDD1E""]";
             parsed = JObject.Parse(json);
@@ -268,7 +265,7 @@ namespace Neo.UnitTests.SmartContract
 
             var json = JsonSerializer.Serialize(entry).ToString();
 
-            Assert.AreEqual(json, "[true,\"test\",123]");
+            Assert.AreEqual(json, "[true,\"dGVzdA==\",123]");
         }
 
         [TestMethod]
@@ -281,7 +278,7 @@ namespace Neo.UnitTests.SmartContract
 
             var array = (VM.Types.Array)items;
 
-            Assert.IsTrue(array[0].GetBoolean());
+            Assert.IsTrue(array[0].ToBoolean());
             Assert.AreEqual(array[1].GetString(), "test");
             Assert.AreEqual(array[2].GetBigInteger(), 123);
         }
@@ -297,7 +294,7 @@ namespace Neo.UnitTests.SmartContract
 
             var json = JsonSerializer.Serialize(entry).ToString();
 
-            Assert.AreEqual(json, "[[true,\"test1\",123],[true,\"test2\",321]]");
+            Assert.AreEqual(json, "[[true,\"dGVzdDE=\",123],[true,\"dGVzdDI=\",321]]");
         }
 
         [TestMethod]
@@ -316,7 +313,7 @@ namespace Neo.UnitTests.SmartContract
             array = (VM.Types.Array)array[0];
             Assert.AreEqual(array.Count, 3);
 
-            Assert.IsTrue(array[0].GetBoolean());
+            Assert.IsTrue(array[0].ToBoolean());
             Assert.AreEqual(array[1].GetString(), "test1");
             Assert.AreEqual(array[2].GetBigInteger(), 123);
 
@@ -324,7 +321,7 @@ namespace Neo.UnitTests.SmartContract
             array = (VM.Types.Array)array[1];
             Assert.AreEqual(array.Count, 3);
 
-            Assert.IsTrue(array[0].GetBoolean());
+            Assert.IsTrue(array[0].ToBoolean());
             Assert.AreEqual(array[1].GetString(), "test2");
             Assert.AreEqual(array[2].GetBigInteger(), 321);
         }

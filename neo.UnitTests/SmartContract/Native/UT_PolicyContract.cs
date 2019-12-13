@@ -1,10 +1,13 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Neo.IO;
+using Neo.Ledger;
 using Neo.Network.P2P.Payloads;
 using Neo.Persistence;
 using Neo.SmartContract;
 using Neo.SmartContract.Native;
 using Neo.UnitTests.Extensions;
+using Neo.VM;
 using System.Linq;
 
 namespace Neo.UnitTests.SmartContract.Native
@@ -12,13 +15,10 @@ namespace Neo.UnitTests.SmartContract.Native
     [TestClass]
     public class UT_PolicyContract
     {
-        Store Store;
-
         [TestInitialize]
         public void TestSetup()
         {
             TestBlockchain.InitializeMockNeoSystem();
-            Store = TestBlockchain.GetStore();
         }
 
         [TestMethod]
@@ -27,7 +27,7 @@ namespace Neo.UnitTests.SmartContract.Native
         [TestMethod]
         public void Check_Initialize()
         {
-            var snapshot = Store.GetSnapshot().Clone();
+            var snapshot = Blockchain.Singleton.GetSnapshot();
             var keyCount = snapshot.Storages.GetChangeSet().Count();
 
             NativeContract.Policy.Initialize(new ApplicationEngine(TriggerType.Application, null, snapshot, 0)).Should().BeTrue();
@@ -54,7 +54,7 @@ namespace Neo.UnitTests.SmartContract.Native
         [TestMethod]
         public void Check_SetMaxBlockSize()
         {
-            var snapshot = Store.GetSnapshot().Clone();
+            var snapshot = Blockchain.Singleton.GetSnapshot();
 
             // Fake blockchain
 
@@ -68,7 +68,7 @@ namespace Neo.UnitTests.SmartContract.Native
             var ret = NativeContract.Policy.Call(snapshot, new Nep5NativeContractExtensions.ManualWitness(null),
                 "setMaxBlockSize", new ContractParameter(ContractParameterType.Integer) { Value = 1024 });
             ret.Should().BeOfType<VM.Types.Boolean>();
-            ret.GetBoolean().Should().BeFalse();
+            ret.ToBoolean().Should().BeFalse();
 
             ret = NativeContract.Policy.Call(snapshot, "getMaxBlockSize");
             ret.Should().BeOfType<VM.Types.Integer>();
@@ -79,7 +79,7 @@ namespace Neo.UnitTests.SmartContract.Native
             ret = NativeContract.Policy.Call(snapshot, new Nep5NativeContractExtensions.ManualWitness(UInt160.Zero),
                  "setMaxBlockSize", new ContractParameter(ContractParameterType.Integer) { Value = Neo.Network.P2P.Message.PayloadMaxSize });
             ret.Should().BeOfType<VM.Types.Boolean>();
-            ret.GetBoolean().Should().BeFalse();
+            ret.ToBoolean().Should().BeFalse();
 
             ret = NativeContract.Policy.Call(snapshot, "getMaxBlockSize");
             ret.Should().BeOfType<VM.Types.Integer>();
@@ -90,7 +90,7 @@ namespace Neo.UnitTests.SmartContract.Native
             ret = NativeContract.Policy.Call(snapshot, new Nep5NativeContractExtensions.ManualWitness(UInt160.Zero),
                 "setMaxBlockSize", new ContractParameter(ContractParameterType.Integer) { Value = 1024 });
             ret.Should().BeOfType<VM.Types.Boolean>();
-            ret.GetBoolean().Should().BeTrue();
+            ret.ToBoolean().Should().BeTrue();
 
             ret = NativeContract.Policy.Call(snapshot, "getMaxBlockSize");
             ret.Should().BeOfType<VM.Types.Integer>();
@@ -100,7 +100,7 @@ namespace Neo.UnitTests.SmartContract.Native
         [TestMethod]
         public void Check_SetMaxTransactionsPerBlock()
         {
-            var snapshot = Store.GetSnapshot().Clone();
+            var snapshot = Blockchain.Singleton.GetSnapshot();
 
             // Fake blockchain
 
@@ -114,7 +114,7 @@ namespace Neo.UnitTests.SmartContract.Native
             var ret = NativeContract.Policy.Call(snapshot, new Nep5NativeContractExtensions.ManualWitness(),
                 "setMaxTransactionsPerBlock", new ContractParameter(ContractParameterType.Integer) { Value = 1 });
             ret.Should().BeOfType<VM.Types.Boolean>();
-            ret.GetBoolean().Should().BeFalse();
+            ret.ToBoolean().Should().BeFalse();
 
             ret = NativeContract.Policy.Call(snapshot, "getMaxTransactionsPerBlock");
             ret.Should().BeOfType<VM.Types.Integer>();
@@ -125,7 +125,7 @@ namespace Neo.UnitTests.SmartContract.Native
             ret = NativeContract.Policy.Call(snapshot, new Nep5NativeContractExtensions.ManualWitness(UInt160.Zero),
                 "setMaxTransactionsPerBlock", new ContractParameter(ContractParameterType.Integer) { Value = 1 });
             ret.Should().BeOfType<VM.Types.Boolean>();
-            ret.GetBoolean().Should().BeTrue();
+            ret.ToBoolean().Should().BeTrue();
 
             ret = NativeContract.Policy.Call(snapshot, "getMaxTransactionsPerBlock");
             ret.Should().BeOfType<VM.Types.Integer>();
@@ -135,7 +135,7 @@ namespace Neo.UnitTests.SmartContract.Native
         [TestMethod]
         public void Check_SetFeePerByte()
         {
-            var snapshot = Store.GetSnapshot().Clone();
+            var snapshot = Blockchain.Singleton.GetSnapshot();
 
             // Fake blockchain
 
@@ -149,7 +149,7 @@ namespace Neo.UnitTests.SmartContract.Native
             var ret = NativeContract.Policy.Call(snapshot, new Nep5NativeContractExtensions.ManualWitness(),
                 "setFeePerByte", new ContractParameter(ContractParameterType.Integer) { Value = 1 });
             ret.Should().BeOfType<VM.Types.Boolean>();
-            ret.GetBoolean().Should().BeFalse();
+            ret.ToBoolean().Should().BeFalse();
 
             ret = NativeContract.Policy.Call(snapshot, "getFeePerByte");
             ret.Should().BeOfType<VM.Types.Integer>();
@@ -160,7 +160,7 @@ namespace Neo.UnitTests.SmartContract.Native
             ret = NativeContract.Policy.Call(snapshot, new Nep5NativeContractExtensions.ManualWitness(UInt160.Zero),
                 "setFeePerByte", new ContractParameter(ContractParameterType.Integer) { Value = 1 });
             ret.Should().BeOfType<VM.Types.Boolean>();
-            ret.GetBoolean().Should().BeTrue();
+            ret.ToBoolean().Should().BeTrue();
 
             ret = NativeContract.Policy.Call(snapshot, "getFeePerByte");
             ret.Should().BeOfType<VM.Types.Integer>();
@@ -170,7 +170,7 @@ namespace Neo.UnitTests.SmartContract.Native
         [TestMethod]
         public void Check_Block_UnblockAccount()
         {
-            var snapshot = Store.GetSnapshot().Clone();
+            var snapshot = Blockchain.Singleton.GetSnapshot();
 
             // Fake blockchain
 
@@ -184,7 +184,7 @@ namespace Neo.UnitTests.SmartContract.Native
             var ret = NativeContract.Policy.Call(snapshot, new Nep5NativeContractExtensions.ManualWitness(),
                 "blockAccount", new ContractParameter(ContractParameterType.Hash160) { Value = UInt160.Zero });
             ret.Should().BeOfType<VM.Types.Boolean>();
-            ret.GetBoolean().Should().BeFalse();
+            ret.ToBoolean().Should().BeFalse();
 
             ret = NativeContract.Policy.Call(snapshot, "getBlockedAccounts");
             ret.Should().BeOfType<VM.Types.Array>();
@@ -195,35 +195,58 @@ namespace Neo.UnitTests.SmartContract.Native
             ret = NativeContract.Policy.Call(snapshot, new Nep5NativeContractExtensions.ManualWitness(UInt160.Zero),
                 "blockAccount", new ContractParameter(ContractParameterType.Hash160) { Value = UInt160.Zero });
             ret.Should().BeOfType<VM.Types.Boolean>();
-            ret.GetBoolean().Should().BeTrue();
+            ret.ToBoolean().Should().BeTrue();
 
             ret = NativeContract.Policy.Call(snapshot, "getBlockedAccounts");
             ret.Should().BeOfType<VM.Types.Array>();
             ((VM.Types.Array)ret).Count.Should().Be(1);
-            ((VM.Types.Array)ret)[0].GetByteArray().ShouldBeEquivalentTo(UInt160.Zero.ToArray());
+            ((VM.Types.Array)ret)[0].GetSpan().ToArray().Should().BeEquivalentTo(UInt160.Zero.ToArray());
 
             // Unblock without signature
 
             ret = NativeContract.Policy.Call(snapshot, new Nep5NativeContractExtensions.ManualWitness(),
                 "unblockAccount", new ContractParameter(ContractParameterType.Hash160) { Value = UInt160.Zero });
             ret.Should().BeOfType<VM.Types.Boolean>();
-            ret.GetBoolean().Should().BeFalse();
+            ret.ToBoolean().Should().BeFalse();
 
             ret = NativeContract.Policy.Call(snapshot, "getBlockedAccounts");
             ret.Should().BeOfType<VM.Types.Array>();
             ((VM.Types.Array)ret).Count.Should().Be(1);
-            ((VM.Types.Array)ret)[0].GetByteArray().ShouldBeEquivalentTo(UInt160.Zero.ToArray());
+            ((VM.Types.Array)ret)[0].GetSpan().ToArray().Should().BeEquivalentTo(UInt160.Zero.ToArray());
 
             // Unblock with signature
 
             ret = NativeContract.Policy.Call(snapshot, new Nep5NativeContractExtensions.ManualWitness(UInt160.Zero),
                 "unblockAccount", new ContractParameter(ContractParameterType.Hash160) { Value = UInt160.Zero });
             ret.Should().BeOfType<VM.Types.Boolean>();
-            ret.GetBoolean().Should().BeTrue();
+            ret.ToBoolean().Should().BeTrue();
 
             ret = NativeContract.Policy.Call(snapshot, "getBlockedAccounts");
             ret.Should().BeOfType<VM.Types.Array>();
             ((VM.Types.Array)ret).Count.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void TestCheckPolicy()
+        {
+            Transaction tx = Blockchain.GenesisBlock.Transactions[0];
+            var snapshot = Blockchain.Singleton.GetSnapshot();
+
+            StorageKey storageKey = new StorageKey
+            {
+                ScriptHash = NativeContract.Policy.Hash,
+                Key = new byte[sizeof(byte)]
+            };
+            storageKey.Key[0] = 15;
+            snapshot.Storages.Add(storageKey, new StorageItem
+            {
+                Value = new UInt160[] { tx.Sender }.ToByteArray(),
+            });
+
+            NativeContract.Policy.CheckPolicy(tx, snapshot).Should().BeFalse();
+
+            snapshot = Blockchain.Singleton.GetSnapshot();
+            NativeContract.Policy.CheckPolicy(tx, snapshot).Should().BeTrue();
         }
     }
 }

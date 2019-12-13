@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.SmartContract;
 using Neo.Wallets;
@@ -33,7 +33,7 @@ namespace Neo.UnitTests.Wallets
         public void TestGetAddress()
         {
             MyWalletAccount walletAccount = new MyWalletAccount(UInt160.Zero);
-            walletAccount.Address.Should().Be("AFmseVrdL9f9oyCzZefL9tG6UbvhPbdYzM");
+            walletAccount.Address.Should().Be("NKuyBkoGdZZSLyPbJEetheRhMjeznFZszf");
         }
 
         [TestMethod]
