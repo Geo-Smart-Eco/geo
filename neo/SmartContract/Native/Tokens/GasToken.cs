@@ -14,9 +14,9 @@ namespace Neo.SmartContract.Native.Tokens
 {
     public sealed class GasToken : Nep5Token<Nep5AccountState>
     {
-        public override string ServiceName => "Neo.Native.Tokens.GAS";
-        public override string Name => "GAS";
-        public override string Symbol => "gas";
+        public override string ServiceName => "Neo.Native.Tokens.AIR";
+        public override string Name => "AIR";
+        public override string Symbol => "air";
         public override byte Decimals => 8;
 
         private const byte Prefix_SystemFeeAmount = 15;

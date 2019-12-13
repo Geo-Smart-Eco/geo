@@ -18,9 +18,9 @@ namespace Neo.SmartContract.Native.Tokens
 {
     public sealed class NeoToken : Nep5Token<NeoToken.AccountState>
     {
-        public override string ServiceName => "Neo.Native.Tokens.NEO";
-        public override string Name => "NEO";
-        public override string Symbol => "neo";
+        public override string ServiceName => "Neo.Native.Tokens.GEO";
+        public override string Name => "GEO";
+        public override string Symbol => "geo";
         public override byte Decimals => 0;
         public BigInteger TotalAmount { get; }
 
